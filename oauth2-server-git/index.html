@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="./bower_components/angular/angular.min.js"></script>
+    <script src="./bower_components/angular-cookies/angular-cookies.min.js"></script>
+    <script src="./bower_components/query-string/query-string.js"></script>
+    <script src="./bower_components/angular-oauth2/dist/angular-oauth2.min.js"></script>
+
+</head>
+<body>
+fsfsdfsd
+<script>
+    angular.module('myApp', ['angular-oauth2'])
+    .config(['OAuthProvider', function(OAuthProvider) {
+        OAuthProvider.configure({
+            baseUrl: 'https://localhost:1689/token.php',
+            clientId: 'testclient',
+            clientSecret: 'testpass' // optional
+        });
+    }])
+    .run(['$rootScope', '$window', 'OAuth', function($rootScope, $window, OAuth) {
+        $rootScope.$on('oauth:error', function(event, rejection) {
+            // Ignore `invalid_grant` error - should be catched on `LoginController`.
+            if ('invalid_grant' === rejection.data.error) {
+                return;
+            }
+
+            // Refresh token when a `invalid_token` error occurs.
+            if ('invalid_token' === rejection.data.error) {
+                return OAuth.getRefreshToken();
+            }
+
+            // Redirect to `/login` with the `error_reason`.
+            return $window.location.href = '/login?error_reason=' + rejection.data.error;
+        });
+    }])
+</script>
+</body>
+</html>
